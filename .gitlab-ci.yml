@@ -1,0 +1,20 @@
+---
+
+image: docker:19.03.12
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+
+stages:
+  - test
+
+test:
+  before_script:
+    - apk add --no-cache docker-compose make
+  script:
+    - make integration
+  after_script:
+    - make stop

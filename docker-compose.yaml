@@ -1,0 +1,33 @@
+version: "3.7"
+services:
+  mock_server:
+    image: mockserver/mockserver:latest
+    ports:
+      - 1080:1080
+    environment:
+      MOCKSERVER_WATCH_INITIALIZATION_JSON: "true"
+      MOCKSERVER_ENABLE_CORS_FOR_API: "true"
+      MOCKSERVER_ENABLE_CORS_FOR_ALL_RESPONSES: "true"
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializer.json
+    volumes:
+      - .:/config:ro
+    networks: 
+      - default
+
+  waitfor:
+    image: curlimages/curl
+    entrypoint: sh -c "until curl --location --request PUT 'http://mock_server:1080/status' | grep 1080; do echo .; sleep 1; done;"
+    networks: 
+      - default
+
+  integration: 
+    command: go test -v ./
+    working_dir: /home/dev
+    image: golang:1.15
+    environment: 
+      MOCK_HOST: mock_server:1080
+    volumes:
+      - ./tests:/home/dev
+    networks: 
+      - default
+    
